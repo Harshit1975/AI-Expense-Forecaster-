@@ -1,0 +1,48 @@
+Date,Category,Description,Amount,Type
+2026-04-04,Salary & Income,Salary ,100000.0,Income
+2026-04-11,Food & Dining,Simulated Food & Dining expense,389.8,Expense
+2026-04-13,Utilities & Bills,Simulated Utilities & Bills expense,242.2,Expense
+2026-04-09,Groceries,Simulated Groceries expense,343.03,Expense
+2026-03-26,Entertainment,Simulated Entertainment expense,456.43,Expense
+2026-03-05,Food & Dining,Simulated Food & Dining expense,157.68,Expense
+2026-02-16,Education,Simulated Education expense,33.76,Expense
+2026-03-23,Entertainment,Simulated Entertainment expense,300.0,Expense
+2026-04-01,Education,Simulated Education expense,336.45,Expense
+2026-02-07,Groceries,Simulated Groceries expense,466.23,Expense
+2026-04-01,Education,Simulated Education expense,144.3,Expense
+2026-03-31,Entertainment,Simulated Entertainment expense,394.64,Expense
+2026-03-17,Entertainment,Simulated Entertainment expense,236.9,Expense
+2026-03-14,Entertainment,Simulated Entertainment expense,340.78,Expense
+2026-03-28,Groceries,Simulated Groceries expense,440.88,Expense
+2026-03-22,Groceries,Simulated Groceries expense,234.81,Expense
+2026-03-13,Entertainment,Simulated Entertainment expense,16.93,Expense
+2026-02-08,Travel & Vacation,Simulated Travel & Vacation expense,357.12,Expense
+2026-04-14,Travel & Vacation,Simulated Travel & Vacation expense,60.85,Expense
+2026-02-28,Personal Care,Simulated Personal Care expense,194.24,Expense
+2026-04-05,Utilities & Bills,Simulated Utilities & Bills expense,478.92,Expense
+2026-03-04,Health & Fitness,Simulated Health & Fitness expense,393.84,Expense
+2026-03-21,Shopping & Retail,Simulated Shopping & Retail expense,165.87,Expense
+2026-03-25,Education,Simulated Education expense,97.06,Expense
+2026-03-13,Auto & Transport,Simulated Auto & Transport expense,322.14,Expense
+2026-04-10,Housing & Rent,Simulated Housing & Rent expense,2668.59,Expense
+2026-04-01,Salary & Income,Calculated Simulated Salary,9664.14,Income
+2026-03-01,Salary & Income,Calculated Simulated Salary,8557.96,Income
+2026-02-01,Salary & Income,Calculated Simulated Salary,6051.35,Income
+2026-02-11,Housing & Rent,Simulated Housing & Rent expense,2614.0,Expense
+2026-04-11,Food & Dining,Simulated Food & Dining expense,453.14,Expense
+2026-04-04,Groceries,Simulated Groceries expense,52.86,Expense
+2026-03-10,Entertainment,Simulated Entertainment expense,11.5,Expense
+2026-03-29,Groceries,Simulated Groceries expense,60.81,Expense
+2026-03-10,Groceries,Simulated Groceries expense,178.19,Expense
+2026-04-17,Education,Simulated Education expense,104.13,Expense
+2026-03-05,Auto & Transport,Simulated Auto & Transport expense,228.43,Expense
+2026-04-12,Auto & Transport,Simulated Auto & Transport expense,341.67,Expense
+2026-04-12,Food & Dining,Simulated Food & Dining expense,386.26,Expense
+2026-02-25,Auto & Transport,Simulated Auto & Transport expense,102.2,Expense
+2026-04-04,Auto & Transport,Simulated Auto & Transport expense,58.95,Expense
+2026-02-12,Groceries,Simulated Groceries expense,15.97,Expense
+2026-02-27,Housing & Rent,Simulated Housing & Rent expense,2443.92,Expense
+2026-03-05,Entertainment,Simulated Entertainment expense,300.01,Expense
+2026-02-01,Salary & Income,Calculated Simulated Salary,5676.09,Income
+2026-04-01,Salary & Income,Calculated Simulated Salary,1897.01,Income
+2026-03-01,Salary & Income,Calculated Simulated Salary,1278.94,Income

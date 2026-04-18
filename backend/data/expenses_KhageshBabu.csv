@@ -1,0 +1,16 @@
+Date,Category,Description,Amount,Type
+2026-04-09,Investments,Salary,10000.0,Expense
+2026-04-18,Salary & Income,Salary,10000.0,Income
+2026-03-23,Auto & Transport,Simulated Auto & Transport expense,136.75,Expense
+2026-03-31,Travel & Vacation,Simulated Travel & Vacation expense,63.64,Expense
+2026-04-12,Auto & Transport,Simulated Auto & Transport expense,32.0,Expense
+2026-03-17,Travel & Vacation,Simulated Travel & Vacation expense,420.5,Expense
+2026-03-05,Auto & Transport,Simulated Auto & Transport expense,421.24,Expense
+2026-02-26,Food & Dining,Simulated Food & Dining expense,368.54,Expense
+2026-02-17,Shopping & Retail,Simulated Shopping & Retail expense,454.22,Expense
+2026-04-13,Personal Care,Simulated Personal Care expense,290.77,Expense
+2026-04-07,Education,Simulated Education expense,383.62,Expense
+2026-03-18,Utilities & Bills,Simulated Utilities & Bills expense,124.92,Expense
+2026-03-01,Salary & Income,Calculated Simulated Salary,1667.05,Income
+2026-04-01,Salary & Income,Calculated Simulated Salary,1206.39,Income
+2026-02-01,Salary & Income,Calculated Simulated Salary,1322.76,Income
