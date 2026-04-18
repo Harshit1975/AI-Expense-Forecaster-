@@ -1,14 +1,14 @@
 # AI-Expense-Forecaster
 
 <p align="center">
-  <img src="assets/logo.png" alt="FinSight Logo" width="300" />
+  <img src="assets/logo.png" alt="AI-Expense-Forecaster Logo" width="300" />
 </p>
 
-![FinSight Banner](https://img.shields.io/badge/FinSight-Premium%20Analytics-8b5cf6?style=for-the-badge)  
+![AI-Expense-Forecaster Banner](https://img.shields.io/badge/AI--Expense--Forecaster-Premium%20Analytics-8b5cf6?style=for-the-badge)  
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) ![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB) ![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white) ![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-F7931E?style=flat-square&logo=scikit-learn&logoColor=white) 
 
 ## 📝 Overview
-**FinSight** is an industry-grade, FinTech-inspired Full Stack Expense Tracking dashboard heavily integrated with Data Science methodologies. Unlike basic CRUD applications, FinSight leverages a high-performance **Python (FastAPI + Pandas + Scikit-Learn)** backend to clean, aggregate, analyze, and forecast financial data. The processed data is served to a dynamically animated, premium **React** frontend for interactive data visualization.
+**AI-Expense-Forecaster** is an industry-grade, FinTech-inspired Full Stack Expense Tracking dashboard heavily integrated with Data Science methodologies. Unlike basic CRUD applications, **AI-Expense-Forecaster** leverages a high-performance **Python (FastAPI + Pandas + Scikit-Learn)** backend to clean, aggregate, analyze, and forecast financial data. The processed data is served to a dynamically animated, premium **React** frontend for interactive data visualization.
 
 ---
 
