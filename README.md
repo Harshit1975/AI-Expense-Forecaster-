@@ -1,4 +1,4 @@
-# FinSight: Analytics & Expense Tracker
+# AI-Expense-Forecaster
 
 <p align="center">
   <img src="assets/logo.png" alt="FinSight Logo" width="300" />
@@ -91,42 +91,3 @@ The script will automatically trigger `npm run build` on your frontend and mount
 - **Exploratory Data Analysis:** Clean tracking of total expenses vs income margins.
 - **Predictive Modeling:** Calculates daily depletion averages utilizing linear curve fitting logic.
 - **Reporting Pipelines:** Seamless integration connecting dataframes directly to raw HTTP response streams for robust data delivery.
-
----
-
-## 📂 Project Directory Structure
-```text
-FinSight/
-├── assets/                    # Project logos and generated graphics
-├── backend/                   # Python FastAPI Server
-│   ├── data/                  # Synthetically generated CSV files & PDF exports
-│   ├── app.py                 # Core API routing and ML endpoint definitions
-│   ├── data_generator.py      # Script to mock thousands of realistic transctions
-│   └── data_processor.py      # Pandas data cleaning and metric aggregation
-├── frontend/                  # React + Vite Client
-│   ├── public/                # Static assets
-│   └── src/
-│       ├── App.jsx            # Main React Dashboard and UI components
-│       ├── App.css            # Component-level styling
-│       └── index.css          # Global Design System (Tokens, Glassmorphism)
-└── start_app.py               # Unified initialization script
-```
-
----
-
-## 📡 API Endpoints Documentation
-FinSight utilizes a RESTful API architecture connecting the Data Science backend to the React interface.
-- `GET /api/dashboard` : Returns rigorously aggregated KPI metrics (Total Income, Expenses, Balance), Category Breakdowns, and Monthly Trends using Pandas.
-- `GET /api/transactions` : Supplies the raw transaction history data formatted efficiently for the frontend Data Grid.
-- `POST /api/transaction` : Securely ingests new transaction records and immediately recalculates your net balance metrics against your Goal threshold.
-- `POST /api/simulate` : Development testing route designed to inject customizable arrays of synthetic transaction data to instantly populate charts.
-- `GET /api/predict` : Utilizes `scikit-learn` Linear Regression processing daily spending to confidently forecast your wealth depletion date.
-- `GET /api/export/pdf` : Automatically compiles and formats raw transaction variables utilizing Python FPDF into a downloadable FinSight Financial Statement.
-- `GET /api/export/csv` : Directly exports the current `Pandas` dataframe to an Excel-friendly CSV.
-
----
-
-## 🔭 Future Scope & Roadmap
-- **Advanced Machine Learning Models:** Upgrading from Linear Regression to ARIMA or LSTMs for complex, cyclical predictive spending behavior.
-- **SQL Database Integration:** Migrating from physical `.csv` persistence logic to enterprise-grade robust PostgreSQL mapping.
-- **Authentication:** Implementing secure JWT tokens and encrypted password management per user account.
