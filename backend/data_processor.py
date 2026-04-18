@@ -26,10 +26,23 @@ def get_summary_metrics(df):
     total_expense = df[df['Type'] == 'Expense']['Amount'].sum()
     balance = float(total_income - total_expense)
     
+    # Calculate current month metrics
+    from datetime import datetime
+    current_month_num = datetime.now().month
+    current_year = datetime.now().year
+    
+    current_month_df = df[(df['Date'].dt.month == current_month_num) & (df['Date'].dt.year == current_year)]
+    current_month_income = current_month_df[current_month_df['Type'] == 'Income']['Amount'].sum()
+    current_month_expense = current_month_df[current_month_df['Type'] == 'Expense']['Amount'].sum()
+    current_month_savings = current_month_income - current_month_expense
+    
     return {
         "totalIncome": float(total_income),
         "totalExpense": float(total_expense),
-        "balance": balance
+        "balance": balance,
+        "currentMonthIncome": float(current_month_income),
+        "currentMonthExpense": float(current_month_expense),
+        "currentMonthSavings": float(current_month_savings)
     }
 
 def get_category_breakdown(df):

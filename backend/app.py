@@ -1,7 +1,22 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, Query
+from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from data_generator import generate_synthetic_data
 from data_processor import load_and_clean_data, get_summary_metrics, get_category_breakdown, get_monthly_trends
+import os
+import pandas as pd
+
+def get_user_file(x_user: Optional[str]) -> str:
+    user = x_user or "default"
+    user = "".join([c for c in user if c.isalnum() or c in ('_', '-')])
+    if not user:
+        user = "default"
+    file_path = f"data/expenses_{user}.csv"
+    if not os.path.exists(file_path):
+        os.makedirs("data", exist_ok=True)
+        df = pd.DataFrame(columns=["Date","Category","Description","Amount","Type"])
+        df.to_csv(file_path, index=False)
+    return file_path
 
 app = FastAPI(title="Expense Tracker API")
 
@@ -20,8 +35,8 @@ def startup_event():
     generate_synthetic_data("data/expenses.csv")
 
 @app.get("/api/dashboard")
-def get_dashboard_data():
-    df = load_and_clean_data("data/expenses.csv")
+def get_dashboard_data(x_user: Optional[str] = Header(None)):
+    df = load_and_clean_data(get_user_file(x_user))
     
     return {
         "status": "success",
@@ -31,8 +46,8 @@ def get_dashboard_data():
     }
 
 @app.get("/api/transactions")
-def get_recent_transactions():
-    df = load_and_clean_data("data/expenses.csv")
+def get_recent_transactions(x_user: Optional[str] = Header(None)):
+    df = load_and_clean_data(get_user_file(x_user))
     if df.empty: return {"transactions": []}
     
     # Return last 10 transactions
@@ -51,31 +66,43 @@ class Transaction(BaseModel):
     Type: str
 
 @app.post("/api/transaction")
-def create_transaction(txn: Transaction):
+def create_transaction(txn: Transaction, x_user: Optional[str] = Header(None)):
     from data_processor import add_transaction
-    add_transaction(txn.dict(), "data/expenses.csv")
+    add_transaction(txn.dict(), get_user_file(x_user))
     return {"status": "success", "message": "Transaction added"}
 
 class SimulationRequest(BaseModel):
     num_transactions: int = 50
+    target_savings: float = 0.0
 
 @app.post("/api/simulate")
-def simulate_data(req: SimulationRequest):
+def simulate_data(req: SimulationRequest, x_user: Optional[str] = Header(None)):
     import pandas as pd
     import numpy as np
     import random
     from datetime import datetime, timedelta
     from data_processor import add_transaction
     
+    file_path = get_user_file(x_user)
+    
     categories = [
         'Food & Dining', 'Groceries', 'Housing & Rent', 'Auto & Transport', 
         'Utilities & Bills', 'Health & Fitness', 'Shopping & Retail', 
         'Entertainment', 'Personal Care', 'Travel & Vacation', 'Education'
     ]
-    start_date = datetime.now() - timedelta(days=90)
+    
+    # We will track expenses per month to calculate the required income
+    monthly_expenses = {}
+    
+    # We simulate over current month and 2 past months
+    # To keep it realistic, we'll force some transactions in the current month
+    current_date = datetime.now()
     
     for _ in range(req.num_transactions):
-        date = start_date + timedelta(days=np.random.randint(0, 90))
+        # Weighted random date leaning towards recent days
+        days_ago = int(np.random.gamma(shape=2, scale=15)) % 90
+        date = current_date - timedelta(days=days_ago)
+        
         category = random.choice(categories)
         amount = round(np.random.uniform(10, 500) if category != 'Housing & Rent' else np.random.uniform(1000, 3000), 2)
         desc = f"Simulated {category} expense"
@@ -87,16 +114,33 @@ def simulate_data(req: SimulationRequest):
             "Amount": amount,
             "Type": "Expense"
         }
-        add_transaction(txn, "data/expenses.csv")
+        add_transaction(txn, file_path)
         
-    return {"status": "success", "message": f"Simulated {req.num_transactions} transactions"}
+        month_key = date.strftime('%Y-%m')
+        monthly_expenses[month_key] = monthly_expenses.get(month_key, 0) + amount
+        
+    # Inject exactly ONE income transaction per simulated month to yield the target saving
+    for month_key, total_exp in monthly_expenses.items():
+        required_income = round(total_exp + req.target_savings, 2)
+        income_date = f"{month_key}-01" # First day of the month
+        
+        txn = {
+            "Date": income_date,
+            "Category": "Salary & Income",
+            "Description": "Calculated Simulated Salary",
+            "Amount": required_income,
+            "Type": "Income"
+        }
+        add_transaction(txn, file_path)
+        
+    return {"status": "success", "message": f"Simulated {req.num_transactions} expenses & verified savings"}
 
 from fastapi.responses import FileResponse
 import os
 
 @app.get("/api/predict")
-def predict_expenses():
-    df = load_and_clean_data("data/expenses.csv")
+def predict_expenses(x_user: Optional[str] = Header(None)):
+    df = load_and_clean_data(get_user_file(x_user))
     if df.empty: return {"forecast_day": None, "message": "No data"}
     
     total_income = df[df['Type'] == 'Income']['Amount'].sum()
@@ -154,16 +198,16 @@ def predict_expenses():
     return {"forecast_day": f"{day}{suffix} of {month_name}", "message": "Success"}
 
 @app.get("/api/export/csv")
-def export_csv():
-    file_path = "data/expenses.csv"
+def export_csv(user: Optional[str] = Query(None)):
+    file_path = get_user_file(user)
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type="text/csv", filename="FinSight_Transactions.csv")
     return {"error": "File not found"}
 
 @app.get("/api/export/pdf")
-def export_pdf():
+def export_pdf(user: Optional[str] = Query(None)):
     from fpdf import FPDF
-    df = load_and_clean_data("data/expenses.csv")
+    df = load_and_clean_data(get_user_file(user))
     
     pdf = FPDF()
     pdf.add_page()
@@ -188,7 +232,8 @@ def export_pdf():
         for _, row in recent.iterrows():
             pdf.cell(200, 8, txt=f"{row['Date'].strftime('%Y-%m-%d')}   |   {row['Category'][:15]:15}   |   {row['Type'][:7]:7}   |   ${row['Amount']:,.2f}", ln=1, align='L')
             
-    pdf_path = "data/FinSight_Report.pdf"
+    save_user = "".join([c for c in (user or "default") if c.isalnum() or c in ('_', '-')])
+    pdf_path = f"data/FinSight_Report_{save_user}.pdf"
     pdf.output(pdf_path)
     return FileResponse(pdf_path, media_type="application/pdf", filename="FinSight_Report.pdf")
 

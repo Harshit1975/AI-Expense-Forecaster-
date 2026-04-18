@@ -15,12 +15,13 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
+  const [activeUser, setActiveUser] = useState("default");
   
   if (!isAuthenticated) {
-    return <AuthScreen onLogin={() => setIsAuthenticated(true)} mode={authMode} setMode={setAuthMode} />;
+    return <AuthScreen onLogin={(user) => { setActiveUser(user); setIsAuthenticated(true); }} mode={authMode} setMode={setAuthMode} />;
   }
 
-  return <MainLayout onLogout={() => setIsAuthenticated(false)} />;
+  return <MainLayout onLogout={() => setIsAuthenticated(false)} username={activeUser} />;
 }
 
 function AuthScreen({ onLogin, mode, setMode }) {
@@ -29,7 +30,7 @@ function AuthScreen({ onLogin, mode, setMode }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if(username.trim() !== '') {
-      onLogin();
+      onLogin(username.trim());
     }
   };
 
@@ -68,7 +69,7 @@ function AuthScreen({ onLogin, mode, setMode }) {
   );
 }
 
-function MainLayout({ onLogout }) {
+function MainLayout({ onLogout, username }) {
   const [currentView, setCurrentView] = useState('dashboard');
   const [data, setData] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -77,16 +78,22 @@ function MainLayout({ onLogout }) {
   const [forecast, setForecast] = useState(null);
   
   const [financialGoal, setFinancialGoal] = useState(() => {
-    const saved = localStorage.getItem('financialGoal');
+    const saved = localStorage.getItem(`financialGoal_${username}`);
     return saved ? JSON.parse(saved) : { name: 'Emergency Fund', target: 5000 };
+  });
+
+  const [expenseLimit, setExpenseLimit] = useState(() => {
+    const saved = localStorage.getItem(`expenseLimit_${username}`);
+    return saved ? parseInt(saved) : 15;
   });
 
   const fetchData = async () => {
     try {
+      const headers = { 'x-user': username };
       const [dashboardRes, transactionsRes, predictRes] = await Promise.all([
-        fetch('/api/dashboard'),
-        fetch('/api/transactions'),
-        fetch('/api/predict')
+        fetch('/api/dashboard', { headers }),
+        fetch('/api/transactions', { headers }),
+        fetch('/api/predict', { headers })
       ]);
       const dashboardData = await dashboardRes.json();
       const txData = await transactionsRes.json();
@@ -110,9 +117,7 @@ function MainLayout({ onLogout }) {
     fetchData();
   }, []);
 
-  if (loading) {
-    return <div className="loader-container"><div className="spinner"></div></div>;
-  }
+
 
   const { metrics, categoryBreakdown, monthlyTrends } = data || { metrics: {}, categoryBreakdown: [], monthlyTrends: [] };
   const hasData = transactions && transactions.length > 0;
@@ -154,10 +159,10 @@ function MainLayout({ onLogout }) {
             <p style={{ color: 'var(--text-muted)' }}>Welcome back! Here is your latest financial data.</p>
           </div>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <button className="btn-secondary auto-width" onClick={() => window.open('/api/export/csv', '_blank')} style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)' }}>
+            <button className="btn-secondary auto-width" onClick={() => window.open(`/api/export/csv?user=${encodeURIComponent(username)}`, '_blank')} style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)' }}>
               <Download size={18} /> Export CSV
             </button>
-            <button className="btn-secondary auto-width" onClick={() => window.open('/api/export/pdf', '_blank')} style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)' }}>
+            <button className="btn-secondary auto-width" onClick={() => window.open(`/api/export/pdf?user=${encodeURIComponent(username)}`, '_blank')} style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)' }}>
               <FileText size={18} /> Export PDF Report
             </button>
             <button className="btn-primary auto-width" onClick={() => setShowModal(true)}>
@@ -167,7 +172,11 @@ function MainLayout({ onLogout }) {
         </div>
 
         {/* Dynamic View Rendering */}
-        {currentView === 'dashboard' && (
+        {loading ? (
+          <div className="loader-container" style={{ height: '50vh' }}><div className="spinner"></div></div>
+        ) : (
+          <>
+            {currentView === 'dashboard' && (
           <>
             {!hasData ? (
               <div className="empty-state glass">
@@ -178,6 +187,7 @@ function MainLayout({ onLogout }) {
             ) : (
               <>
                 <MetricsGrid metrics={metrics} />
+                <MonthlySavingsTracker metrics={metrics} />
                 <Forecaster forecast={forecast} />
                 <GoalTracker balance={metrics.balance} goal={financialGoal} />
                 <ChartsGrid monthlyTrends={monthlyTrends} categoryBreakdown={categoryBreakdown} />
@@ -194,8 +204,10 @@ function MainLayout({ onLogout }) {
           </div>
         )}
 
-        {currentView === 'profile' && (
-          <ProfileSettings refreshData={fetchData} goal={financialGoal} setGoal={setFinancialGoal} />
+            {currentView === 'profile' && (
+              <ProfileSettings refreshData={fetchData} goal={financialGoal} setGoal={setFinancialGoal} username={username} expenseLimit={expenseLimit} setExpenseLimit={setExpenseLimit} />
+            )}
+          </>
         )}
       </main>
 
@@ -206,6 +218,9 @@ function MainLayout({ onLogout }) {
           refreshData={fetchData} 
           balance={metrics.balance} 
           goal={financialGoal} 
+          username={username}
+          transactions={transactions}
+          expenseLimit={expenseLimit}
         />
       )}
     </div>
@@ -237,6 +252,36 @@ function MetricsGrid({ metrics }) {
         <div className="metric-info">
           <h3>Total Expenses</h3>
           <p>{formatCurrency(metrics.totalExpense)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MonthlySavingsTracker({ metrics }) {
+  const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
+  const isPositive = (metrics.currentMonthSavings || 0) >= 0;
+  
+  return (
+    <div className="glass" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: `4px solid ${isPositive ? 'var(--success)' : 'var(--danger)'}` }}>
+      <h3 style={{ marginBottom: '1rem' }}>📅 This Month's Overview</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Monthly Income</p>
+          <h4 style={{ fontSize: '1.25rem', color: 'var(--success)' }}>{formatCurrency(metrics.currentMonthIncome)}</h4>
+        </div>
+        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Monthly Expenses</p>
+          <h4 style={{ fontSize: '1.25rem', color: 'var(--danger)' }}>{formatCurrency(metrics.currentMonthExpense)}</h4>
+        </div>
+        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{isPositive ? 'Monthly Savings' : 'Monthly Deficit'}</p>
+          <h4 style={{ fontSize: '1.5rem', color: isPositive ? 'var(--success)' : 'var(--danger)', fontWeight: 'bold' }}>
+            {formatCurrency(metrics.currentMonthSavings)}
+          </h4>
+          <p style={{ fontSize: '0.75rem', marginTop: '0.25rem', color: 'var(--text-muted)' }}>
+            {isPositive ? 'Ready to be saved or invested! 🌱' : 'Warning: High spending this month. ⚠️'}
+          </p>
         </div>
       </div>
     </div>
@@ -397,7 +442,7 @@ function TransactionDataGrid({ transactions }) {
   );
 }
 
-function TransactionModal({ onClose, refreshData, balance, goal }) {
+function TransactionModal({ onClose, refreshData, balance, goal, username, transactions, expenseLimit }) {
   const [formData, setFormData] = useState({
     Amount: '', Category: 'Food & Dining', Description: '',
     Date: new Date().toISOString().split('T')[0], Type: 'Expense'
@@ -406,8 +451,17 @@ function TransactionModal({ onClose, refreshData, balance, goal }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // GOAL PROTECTION LOGIC
+    // GOAL & MONTHLY EXPENSE LIMIT PROTECTION LOGIC
     if (formData.Type === 'Expense') {
+      const currentMonth = formData.Date.substring(0, 7); // YYYY-MM
+      const thisMonthExpensesCount = transactions.filter(
+        t => t.Type === 'Expense' && t.Date && t.Date.startsWith(currentMonth)
+      ).length;
+
+      if (thisMonthExpensesCount >= expenseLimit) {
+        alert(`🚨 MONTHLY EXPENSE LIMIT REACHED! \n\nThis month your expenses limit is over. You set a maximum tracking limit of ${expenseLimit} expenses to support your monthly saving system!`);
+        return; // Stop the submission!
+      }
       const expenseAmount = parseFloat(formData.Amount);
       const newBalanceAfterExpense = balance - expenseAmount;
       const targetAmount = parseFloat(goal.target);
@@ -421,7 +475,7 @@ function TransactionModal({ onClose, refreshData, balance, goal }) {
     try {
       await fetch('/api/transaction', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-user': username },
         body: JSON.stringify({ ...formData, Amount: parseFloat(formData.Amount) })
       });
       await refreshData();
@@ -537,40 +591,26 @@ function Forecaster({ forecast }) {
   );
 }
 
-function ProfileSettings({ refreshData, goal, setGoal }) {
-  const [numRecords, setNumRecords] = useState(50);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  
+function ProfileSettings({ refreshData, goal, setGoal, username, expenseLimit, setExpenseLimit }) {
   const [localGoal, setLocalGoal] = useState(goal);
+  const [localExpenseLimit, setLocalExpenseLimit] = useState(expenseLimit);
+  const [message, setMessage] = useState("");
 
-  const handleSimulate = async () => {
-    setLoading(true);
-    setMessage("");
-    try {
-      await fetch('/api/simulate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ num_transactions: parseInt(numRecords) })
-      });
-      await refreshData();
-      setMessage("Simulation Complete! Dashboard updated.");
-    } catch (err) {
-      console.error(err);
-      setMessage("Error performing simulation.");
-    }
-    setLoading(false);
-  };
-  
   const handleSavePreferences = () => {
     setGoal(localGoal);
-    localStorage.setItem('financialGoal', JSON.stringify(localGoal));
-    alert("Preferences & Goal saved successfully!");
+    setExpenseLimit(localExpenseLimit);
+    localStorage.setItem(`financialGoal_${username}`, JSON.stringify(localGoal));
+    localStorage.setItem(`expenseLimit_${username}`, localExpenseLimit);
+    setMessage("Tracking Features Updated Successfully!");
+    
+    setTimeout(() => {
+      setMessage("");
+    }, 3000);
   };
 
   return (
     <div className="glass" style={{ padding: '2rem' }}>
-      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Application Settings & Bulk Simulation</h2>
+      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Application Settings & Monthly Limits</h2>
       
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
         {/* Settings Panel */}
@@ -584,40 +624,32 @@ function ProfileSettings({ refreshData, goal, setGoal }) {
             <label>Target Amount ($)</label>
             <input type="number" value={localGoal.target} onChange={(e) => setLocalGoal({...localGoal, target: e.target.value})} />
           </div>
-          <button className="btn-secondary" onClick={handleSavePreferences}>Save Preferences</button>
         </div>
 
-        {/* Data Generation Panel */}
+        {/* Expenses Limit Tracking Panel */}
         <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '1rem' }}>
           <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Activity size={20} /> Data Simulation Engine
+            <Activity size={20} /> Monthly Expense Limits
           </h3>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-            Instantly generate random transactions using Data Science models to automatically test your dashboard visuals. Useful for seeing immediate changes!
+            Set a maximum number of expenses per month based on your spending capacity. Track your monthly saving system professionally!
           </p>
           
           <div className="form-group">
-            <label>Number of Random Expenses to Generate:</label>
+            <label>Max Number of Expenses this Month (e.g. 15):</label>
             <input 
               type="number" 
-              value={numRecords} 
-              onChange={(e) => setNumRecords(e.target.value)} 
+              value={localExpenseLimit} 
+              onChange={(e) => setLocalExpenseLimit(parseInt(e.target.value) || 1)} 
               min="1" 
-              max="500" 
             />
           </div>
-          
-          <button 
-            className="btn-primary" 
-            style={{ width: '100%', marginTop: '0.5rem' }} 
-            onClick={handleSimulate}
-            disabled={loading}
-          >
-            {loading ? 'Simulating Data...' : `Inject ${numRecords} Mock Transactions`}
-          </button>
-          
-          {message && <p style={{ marginTop: '1rem', color: 'var(--success)', fontWeight: 'bold' }}>{message}</p>}
         </div>
+      </div>
+      
+      <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
+        <button className="btn-primary" onClick={handleSavePreferences}>Update Tracking Features</button>
+        {message && <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>{message}</p>}
       </div>
     </div>
   );

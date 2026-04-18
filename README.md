@@ -34,8 +34,8 @@
 * **💻 Premium Interactive UI Design**  
   A stunning, responsive React web interface employing glassmorphism, Recharts (Donut, Line, and Bar charts), automated skeletons, robust transaction data grids, dynamic search & filtering, and fluid state management.
 
-* **⚙️ Real-time Data Simulation Engine**  
-  Built-in synthetic dataset generator that can instantly inject customizable arrays of mock transactions to easily test UI behavior, modeling robustness, and component visualizations on command.
+* **🔐 Monthly Expense Frequency Limitation**  
+  A built-in tracking module that enforces professional expense limit caps based on user preferences. Actively calculates the current month's expenses and securely blocks any additional transaction attempts once the configured capacity is reached, assuring strict adherence to the monthly savings system.
 
 ---
 
