@@ -10,6 +10,11 @@
 ## 📝 Overview
 **AI-Expense-Forecaster** is an industry-grade, FinTech-inspired Full Stack Expense Tracking dashboard heavily integrated with Data Science methodologies. Unlike basic CRUD applications, **AI-Expense-Forecaster** leverages a high-performance **Python (FastAPI + Pandas + Scikit-Learn)** backend to clean, aggregate, analyze, and forecast financial data. The processed data is served to a dynamically animated, premium **React** frontend for interactive data visualization.
 
+### Real-world Use Cases:
+- **Personal Finance Tracking**: Helping individuals manage budgets, forecast zero-balance dates, and avoid living paycheck to paycheck.
+- **Business Expense Monitoring**: Tracking company costs and detecting anomalous expenditures.
+- **Financial Planning & Goal Setting**: Setting rigid limits for different categories utilizing active savings transaction-blockers.
+
 ---
 
 ## 🌟 Key Features
@@ -50,6 +55,23 @@
 - **Charting Engine:** Recharts
 - **Iconography:** Lucide-React
 
+### 🧠 Data Workflow Pipeline
+`Data Input (React Form/Synthetic Iterators)` → `Storage (CSV/Database)` → `Processing (Pandas ETL)` → `Analysis (Aggregation/ML Forecasting)` → `API Output (JSON/PDF)` → `Visualization (React Charts)` → `Insights (Decision-making)`
+
+### 🕸️ System Architecture Diagram
+```text
+[ React Frontend (UI & Charts) ]
+             | (HTTP GET/POST Requests over REST API)
+             v
+[ Python FastAPI Backend (Controller) ]
+             |
+             v
+[ Pandas & ML Data Engine (Cleaning, Aggr, Scikit-Learn) ]
+             |
+             v
+[ Storage: backend/data/expenses.csv ]
+```
+
 ---
 
 ## 🚀 How to Run Locally
@@ -84,6 +106,11 @@ The script will automatically trigger `npm run build` on your frontend and mount
 
 **The Application will be automatically available at:**  
 [http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+### 🛠️ Troubleshooting
+- **Port 8000 is busy**: Kill the terminal process running the server, or run FastAPI on a different port: `python -m uvicorn app:app --port 8001`.
+- **CORS Error**: If React cannot fetch from Python, ensure FastAPI's `CORSMiddleware` in `app.py` is configured to allow your host URL.
+- **ModuleNotFoundError: No module named 'pandas'**: Make sure your python virtual environment securely activated before installing requirements.
 
 ---
 
